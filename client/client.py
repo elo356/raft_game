@@ -500,7 +500,7 @@ class HUD:
 # ─────────────────────── Menu Screen ─────────────────────
 
 class MenuScreen:
-    def __init__(self, screen):
+    def __init__(self, screen, default_host="127.0.0.1", default_port=DEFAULT_PORT):
         self.screen = screen
         self.font_xl = pygame.font.SysFont("monospace",36,bold=True)
         self.font_lg = pygame.font.SysFont("monospace",22,bold=True)
@@ -509,8 +509,8 @@ class MenuScreen:
         self.state   = "main"   # main | create | join | connecting
         self.name_buf   = "Player"
         self.lobby_buf  = ""
-        self.host_buf   = "127.0.0.1"
-        self.port_buf   = str(DEFAULT_PORT)
+        self.host_buf   = default_host
+        self.port_buf   = str(default_port)
         self.active_field = "name"
         self.anim    = 0.0
         self.error   = ""
@@ -674,10 +674,9 @@ class RaftGame:
         self.screen   = pygame.display.set_mode((SCREEN_W, SCREEN_H))
         self.clock    = pygame.time.Clock()
         self.net      = NetClient()
-        self.net.connect(host, port)
         self.hud      = HUD(self.screen)
         self.art      = PixelArtRenderer(self.screen)
-        self.menu     = MenuScreen(self.screen)
+        self.menu     = MenuScreen(self.screen, host, port)
         self.in_game  = False
         self.cam_x    = 0.0      # camera tile offset
         self.cam_y    = 0.0
@@ -719,9 +718,11 @@ class RaftGame:
                 if result:
                     if result[0] == "create":
                         _, name, host, port = result
+                        self.net.connect(host, port)
                         self.net.create_lobby(name)
                     elif result[0] == "join":
                         _, name, lid, host, port = result
+                        self.net.connect(host, port)
                         self.net.join_lobby(lid, name)
                 continue
 
